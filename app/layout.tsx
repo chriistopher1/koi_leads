@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Toaster } from "sonner";
 
 // Heading font (optional, keep if you want different headings)
 const outfitHeading = Outfit({
@@ -32,10 +33,13 @@ export default function RootLayout({
         "h-full",
         "antialiased",
         inter.variable,
-        outfitHeading.variable
+        outfitHeading.variable,
       )}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

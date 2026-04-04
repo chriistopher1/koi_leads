@@ -7,7 +7,14 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "sonner";
 import { MapPin } from "lucide-react";
 
@@ -27,10 +34,11 @@ export default function RegisterPage() {
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/callback`,
       },
     });
     if (error) {
+      console.log("Registration error:", error);
       toast.error("Registrasi gagal: " + error.message);
     } else {
       toast.success("Registrasi berhasil! Cek email Anda untuk verifikasi.");
@@ -47,21 +55,44 @@ export default function RegisterPage() {
             <MapPin className="h-8 w-8 text-primary" />
           </div>
           <CardTitle className="text-2xl">Daftar LeadHunter</CardTitle>
-          <CardDescription>Mulai temukan leads bisnis terbaik Anda</CardDescription>
+          <CardDescription>
+            Mulai temukan leads bisnis terbaik Anda
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleRegister}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="fullName">Nama Lengkap</Label>
-              <Input id="fullName" placeholder="John Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+              <Input
+                id="fullName"
+                placeholder="John Doe"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="kamu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Input
+                id="email"
+                type="email"
+                placeholder="kamu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="Minimal 6 karakter" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+              <Input
+                id="password"
+                type="password"
+                placeholder="Minimal 6 karakter"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-3 mt-3">
@@ -70,7 +101,9 @@ export default function RegisterPage() {
             </Button>
             <p className="text-sm text-muted-foreground">
               Sudah punya akun?{" "}
-              <Link href="/login" className="text-primary hover:underline">Masuk di sini</Link>
+              <Link href="/login" className="text-primary hover:underline">
+                Masuk di sini
+              </Link>
             </p>
           </CardFooter>
         </form>
