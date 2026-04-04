@@ -64,7 +64,7 @@ export default function RegisterPage() {
               <Input id="password" type="password" placeholder="Minimal 6 karakter" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-3">
+          <CardFooter className="flex flex-col gap-3 mt-3">
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Mendaftar..." : "Daftar Gratis"}
             </Button>
