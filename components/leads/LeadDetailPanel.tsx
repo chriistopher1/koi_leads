@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Telescope, Phone, Globe, Star, MapPin, Loader2 } from "lucide-react";
 import { DraftMessageModal } from "../outreach/DraftMessageModal";
+import Image from "next/image";
 
 export function LeadDetailPanel({ lead, drafts }: { lead: Lead; drafts: OutreachDraft[] }) {
   const [scoring, setScoring] = useState(false);
@@ -53,7 +54,7 @@ export function LeadDetailPanel({ lead, drafts }: { lead: Lead; drafts: Outreach
           <CardHeader><CardTitle className="text-base">Informasi Bisnis</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <MapPin className="h-4 w-4" />{currentLead.address ?? "-"}
+              <Image src="/app_logo.png" alt="KoiLeads Logo" className="bg-white" width={62} height={62} />
             </div>
             {currentLead.phone && (
               <div className="flex items-center gap-2">

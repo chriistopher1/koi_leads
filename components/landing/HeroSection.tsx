@@ -16,7 +16,7 @@ export function HeroSection() {
           di Google Maps
         </h1>
         <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-          LeadHunter mengotomatiskan pencarian prospek bisnis dari Google Maps, menilai kualitas setiap lead, dan membuat pesan outreach yang dipersonalisasi — semua dalam satu platform.
+          KoiLeads mengotomatiskan pencarian prospek bisnis dari Google Maps, menilai kualitas setiap lead, dan membuat pesan outreach yang dipersonalisasi — semua dalam satu platform.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button size="lg" asChild>

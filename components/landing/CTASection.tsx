@@ -7,7 +7,7 @@ export function CTASection() {
       <div className="container mx-auto text-center max-w-2xl">
         <h2 className="text-3xl font-bold mb-4">Siap Mulai Berburu Leads?</h2>
         <p className="text-primary-foreground/80 mb-8">
-          Bergabung dengan ratusan pebisnis yang sudah menemukan klien baru lewat LeadHunter.
+          Bergabung dengan ratusan pebisnis yang sudah menemukan klien baru lewat KoiLeads.
         </p>
         <Button size="lg" variant="secondary" asChild>
           <Link href="/register">Daftar Sekarang — Gratis</Link>

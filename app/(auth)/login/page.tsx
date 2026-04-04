@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { MapPin } from "lucide-react";
+import Image from "next/image";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -35,9 +36,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
-            <MapPin className="h-8 w-8 text-primary" />
+             <Image src="/app_logo.png" alt="KoiLeads Logo" className="bg-white" width={62} height={62} />
           </div>
-          <CardTitle className="text-2xl">Masuk ke LeadHunter</CardTitle>
+          <CardTitle className="text-2xl">Masuk ke KoiLeads</CardTitle>
           <CardDescription>Masukkan email dan password Anda</CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
