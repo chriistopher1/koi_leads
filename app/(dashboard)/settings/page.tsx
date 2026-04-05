@@ -35,6 +35,10 @@ export default async function SettingsPage() {
             <span className="text-muted-foreground">Kuota Scraping</span>
             <span>{profile?.scrape_quota_used} / {profile?.scrape_quota_limit}</span>
           </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Akhir Langganan</span>
+            <span>{profile?.subscription_ends_at ? new Date(profile.subscription_ends_at).toLocaleDateString() : "Tidak ada"}</span>
+          </div>
         </CardContent>
       </Card>
       <PricingSection />
