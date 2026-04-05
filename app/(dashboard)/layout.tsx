@@ -1,22 +1,42 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { Toaster } from "sonner";
-import { Sidebar } from "@/components/layout/Sidebar";
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+import { createClient } from "@/lib/supabase/server";
+import { Sidebar } from "@/components/layout/Sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   return (
-    <div className="flex h-screen bg-background">
+    <SidebarProvider>
       <Sidebar profile={profile} />
-      <main className="flex-1 overflow-auto">
-        <div className="container mx-auto p-6">{children}</div>
-      </main>
+      <SidebarInset>
+        <header className="flex h-14 items-center gap-2 border-b px-4">
+          <SidebarTrigger />
+        </header>
+        <main className="container mx-auto p-6">{children}</main>
+      </SidebarInset>
       <Toaster richColors />
-    </div>
+    </SidebarProvider>
   );
 }
