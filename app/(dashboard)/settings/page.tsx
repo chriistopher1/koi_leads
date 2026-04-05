@@ -41,7 +41,7 @@ export default async function SettingsPage() {
           </div>
         </CardContent>
       </Card>
-      <PricingSection />
+      <PricingSection profile={profile}/>
     </div>
   );
 }
