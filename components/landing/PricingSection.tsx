@@ -38,7 +38,7 @@ export type Profile = {
 type PlanMode = "subscription" | "lifetime";
 
 interface PlanData {
-  id: "pro" | "business";
+  id: "free" | "pro" | "business";
   name: string;
   subscriptionPrice: string;
   lifetimePrice: string;
@@ -50,6 +50,22 @@ interface PlanData {
 }
 
 const plans: PlanData[] = [
+  {
+    id: "free",
+    name: "Free",
+    subscriptionPrice: "Rp 0",
+    lifetimePrice: "Rp 0",
+    period: "",
+    description: "Untuk mencoba fitur dasar",
+    features: [
+      "50 leads/bulan",
+      "Skor AI dasar",
+      "1 kampanye aktif",
+      "Tanpa export CSV",
+    ],
+    cta: "Mulai Gratis",
+    highlighted: false,
+  },
   {
     id: "pro",
     name: "Pro",
@@ -105,7 +121,7 @@ function getVisiblePlans(profile: Profile | null): PlanData[] {
     subscription_status === "inactive" ||
     subscription_status === "failed"
   ) {
-    return plans;
+    return plans.filter((p) => p.id !== "free");
   }
 
   // Active subscription: hanya tampilkan plan lebih tinggi
@@ -162,6 +178,10 @@ interface PlanCardProps {
 }
 
 function PlanCard({ plan, mode, isLoading, onSelect }: PlanCardProps) {
+  if (plan.id === "free" && mode === "lifetime") {
+    return;
+  }
+
   const price =
     mode === "lifetime" ? plan.lifetimePrice : plan.subscriptionPrice;
   const period = mode === "lifetime" ? " sekali bayar" : plan.period;
@@ -252,6 +272,8 @@ function CancelSubscriptionCard({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function PricingSection({ profile }: { profile: Profile | null }) {
+  // if(profile != null && )
+
   const [mode, setMode] = useState<PlanMode>("subscription");
   const [loading, setLoading] = useState<string | null>(null);
   const router = useRouter();

@@ -18,7 +18,14 @@ export default async function LandingPage() {
   if (user) {
     const { data } = await supabase
       .from("profiles")
-      .select("subscription_plan, subscription_status")
+      .select(
+        `
+    subscription_plan,
+    subscription_status,
+    payment_type,
+    payment_method_id
+  `,
+      )
       .eq("id", user.id)
       .single();
 
