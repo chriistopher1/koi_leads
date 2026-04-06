@@ -27,7 +27,7 @@ export interface CreateRecurringPlanParams {
   email: string;
   name: string;
   subscriptionId: string;
-  customerId: string;// Optional, only if you want to set a default payment method for the recurring plan
+  customerId: string; // Optional, only if you want to set a default payment method for the recurring plan
 }
 
 export interface CreateCustomerParams {
@@ -137,10 +137,13 @@ export async function getOrCreateXenditCustomer({
 }
 
 export async function fetchPaymentMethods(customerId: string) {
-  const res = await fetch(`${XENDIT_BASE}/customers/${customerId}/payment_methods`, {
-    headers: xenditHeaders(),
-  });
-  
+  const res = await fetch(
+    `${XENDIT_BASE}/customers/${customerId}/payment_methods`,
+    {
+      headers: xenditHeaders(),
+    },
+  );
+
   const data = await res.json();
   return data.data || []; // Array of {id: "pm_xxx", type: "CARD", ...}
 }
@@ -154,7 +157,14 @@ export async function fetchPaymentMethods(customerId: string) {
  */
 
 export async function createRecurringPlan(params: CreateRecurringPlanParams) {
+  console.log("Creating recurring plan with params:", params);
 
+  const nowJakarta = new Date().toLocaleString("sv", {
+    timeZone: "Asia/Jakarta",
+  });
+  const anchorDate = nowJakarta.replace(" ", "T") + "Z"; // e.g., "2026-04-06T15:38:00Z"
+
+  console.log("Jakarta anchor date:", anchorDate); // Verify
 
   const res = await fetch(`${XENDIT_BASE}/recurring/plans`, {
     method: "POST",
@@ -170,7 +180,7 @@ export async function createRecurringPlan(params: CreateRecurringPlanParams) {
         reference_id: `schedule_${params.subscriptionId}`,
         interval: "MONTH",
         interval_count: 1,
-        anchor_date: new Date().toISOString(),
+        anchor_date: anchorDate,
         retry_interval: "DAY",
         retry_interval_count: 1,
         total_retry: 3,
@@ -178,7 +188,8 @@ export async function createRecurringPlan(params: CreateRecurringPlanParams) {
       },
       immediate_action_type: "FULL_AMOUNT",
       notification_config: {
-        locale: "id",
+        locale: "en",
+        recurring_created: ["EMAIL"],
         recurring_succeeded: ["EMAIL"],
         recurring_failed: ["EMAIL"],
       },
@@ -189,6 +200,7 @@ export async function createRecurringPlan(params: CreateRecurringPlanParams) {
         payment_type: "subscription",
         subscription_id: params.subscriptionId,
       },
+      payment_link_for_failed_attempt: true,
       description: `KoiLeads - Paket ${params.plan} Bulanan`,
       success_return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?payment=success`,
       failure_return_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?payment=failed`,

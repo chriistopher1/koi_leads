@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     // ── 2. Subscription cycle sukses ─────────────────────────────────────
     if (eventType === "recurring.cycle.succeeded") {
       try {
-        await handleCycleSucceeded(supabase, body);
+        await handleCycleSucceeded(supabase, body.data);
       } catch (error) {
         console.error("[webhook] handleCycleSucceeded error:", error);
       }
@@ -70,12 +70,64 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
+    // ── 4. Plan ACTIVATED (Subscription) ──────────────────────────────────────
+    // if (eventType === "recurring.plan.activated") {
+    //   try {
+    //     await handlePlanActivated(supabase, body.data);
+    //   } catch (error) {
+    //     console.error("[webhook] handlePlanActivated error:", error);
+    //   }
+    //   return NextResponse.json({ received: true });
+    // }
+
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("[webhook] error:", error);
     return NextResponse.json({ received: true }, { status: 200 });
   }
 }
+
+// async function handlePlanActivated(
+//   supabase: ReturnType<typeof getSupabase>,
+//   body: Record<string, unknown>,
+// ) {
+//   const recurringPlanId = body.reference_id;
+//   if (!recurringPlanId) return;
+
+//   const { data: subscription } = await supabase
+//     .from("subscriptions")
+//     .select("id, user_id, plan")
+//     .eq("xendit_subscription_id", recurringPlanId)
+//     .single();
+
+//   if (!subscription) return;
+
+//   const { id: subscriptionId, user_id: userId, plan } = subscription;
+//   const now = new Date();
+//   const endsAt = new Date(now);
+//   endsAt.setMonth(now.getMonth() + 1);
+
+//   await supabase
+//     .from("subscriptions")
+//     .update({
+//       status: "active",
+//       current_period_start: now.toISOString(),
+//       current_period_end: endsAt.toISOString(),
+//     })
+//     .eq("id", subscriptionId);
+
+//   await supabase
+//     .from("profiles")
+//     .update({
+//       subscription_plan: plan,
+//       subscription_status: "active",
+//       subscription_ends_at: endsAt.toISOString(),
+//       scrape_quota_limit: PLAN_QUOTAS[plan] ?? 500,
+//       scrape_quota_used: 0,
+//       payment_type: "subscription",
+//     })
+//     .eq("id", userId);
+// }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Handler: Invoice PAID (Lifetime)
@@ -167,7 +219,7 @@ async function handleCycleSucceeded(
   try {
     // FIX: reference_id on recurring webhook = the recurring plan ID stored
     // as xendit_subscription_id in subscriptions table
-    const recurringPlanId = body.reference_id as string | undefined;
+    const recurringPlanId = body.plan_id as string | undefined;
 
     console.log("recurringPlanId : ", recurringPlanId);
 
@@ -201,7 +253,7 @@ async function handleCycleSucceeded(
     const endsAt = new Date(now);
     endsAt.setMonth(now.getMonth() + 1);
 
-    const cycleAmount = body.cycle_amount as number | undefined;
+    const cycleAmount = body.cycle_number as number | undefined;
     if (cycleAmount) {
       await supabase.from("payments").insert({
         user_id: userId,

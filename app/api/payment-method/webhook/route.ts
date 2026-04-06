@@ -84,8 +84,8 @@ export async function POST(request: NextRequest) {
     // const paymentMethodId = data.payment_token_id;
     // const customerId = data.customer_id;
 
-    console.log("✅ Webhook verified");
-    console.log("body:", body);
+    // console.log("✅ Webhook verified");
+    // console.log("body:", body);
     // console.log("userId:", userId);
     // console.log("paymentMethodId:", paymentMethodId);
     // console.log("customerId:", customerId);
