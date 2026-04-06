@@ -15,6 +15,8 @@ CREATE TABLE profiles (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+
+
 -- CAMPAIGNS
 CREATE TABLE campaigns (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -76,6 +78,54 @@ CREATE TABLE payments (
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'failed', 'expired')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Tambah kolom payment_type di profiles
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS payment_type TEXT NOT NULL DEFAULT 'none'
+    CHECK (payment_type IN ('none', 'lifetime', 'subscription'));
+
+-- Update subscription_status untuk include 'failed' dan 'cancelled'
+ALTER TABLE profiles
+  DROP CONSTRAINT IF EXISTS profiles_subscription_status_check;
+ALTER TABLE profiles
+  ADD CONSTRAINT profiles_subscription_status_check
+    CHECK (subscription_status IN ('active', 'inactive', 'trial', 'failed', 'cancelled'));
+
+-- Tabel subscriptions untuk tracking detail langganan
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  xendit_subscription_id TEXT UNIQUE,         -- ID recurring plan dari Xendit
+  xendit_immediate_invoice_id TEXT,           -- Invoice pertama (immediate charge)
+  plan TEXT NOT NULL CHECK (plan IN ('pro', 'business')),
+  payment_type TEXT NOT NULL CHECK (payment_type IN ('lifetime', 'subscription')),
+  status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending', 'active', 'cancelled', 'failed', 'expired')),
+  current_period_start TIMESTAMPTZ,
+  current_period_end TIMESTAMPTZ,
+  cancelled_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TRIGGER subscriptions_updated_at
+  BEFORE UPDATE ON subscriptions
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
+CREATE INDEX idx_subscriptions_xendit_subscription_id ON subscriptions(xendit_subscription_id);
+
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own subscriptions"
+  ON subscriptions FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Tambah kolom subscription_id di payments untuk link ke tabel subscriptions
+ALTER TABLE payments
+  ADD COLUMN IF NOT EXISTS subscription_id UUID REFERENCES subscriptions(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS payment_type TEXT NOT NULL DEFAULT 'lifetime'
+    CHECK (payment_type IN ('lifetime', 'subscription'));
 
 -- AUTO-CREATE PROFILE ON SIGNUP
 CREATE OR REPLACE FUNCTION handle_new_user()

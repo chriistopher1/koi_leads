@@ -53,7 +53,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
-             <Image src="/app_logo.png" alt="KoiLeads Logo" className="bg-white" width={62} height={62} />
+             <Image src="/app_logo.png" alt="KoiLeads Logo"  width={62} height={62} />
           </div>
           <CardTitle className="text-2xl">Daftar KoiLeads</CardTitle>
           <CardDescription>

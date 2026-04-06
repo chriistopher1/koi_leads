@@ -37,7 +37,7 @@ export default function RootLayout({
         outfitHeading.variable,
       )}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col dark">
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster />
       </body>
