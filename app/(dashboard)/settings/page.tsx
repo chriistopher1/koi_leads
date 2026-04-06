@@ -3,6 +3,7 @@ import { PricingSection } from "@/components/landing/PricingSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { PaymentMethodSection } from "@/components/settings/PaymentMethodSection";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -72,6 +73,7 @@ export default async function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+      <PaymentMethodSection profile={profile} />
       <PricingSection profile={profile} />
     </div>
   );

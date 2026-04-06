@@ -13,10 +13,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check } from "lucide-react";
+import { LinkPaymentModal } from "../settings/LinkPaymentModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type SubscriptionStatus = "active" | "inactive" | "trial" | "failed" | "cancelled";
+type SubscriptionStatus =
+  | "active"
+  | "inactive"
+  | "trial"
+  | "failed"
+  | "cancelled";
 type SubscriptionPlan = "free" | "pro" | "business";
 type PaymentType = "none" | "lifetime" | "subscription";
 
@@ -24,6 +30,7 @@ export type Profile = {
   subscription_status: SubscriptionStatus;
   subscription_plan: SubscriptionPlan;
   payment_type: PaymentType;
+  payment_method_id: string | null;
 };
 
 // ─── Plan Data ────────────────────────────────────────────────────────────────
@@ -93,7 +100,11 @@ function getVisiblePlans(profile: Profile | null): PlanData[] {
   if (payment_type === "lifetime") return [];
 
   // Inactive / trial: tampilkan semua
-  if (subscription_status === "trial" || subscription_status === "inactive" || subscription_status === "failed") {
+  if (
+    subscription_status === "trial" ||
+    subscription_status === "inactive" ||
+    subscription_status === "failed"
+  ) {
     return plans;
   }
 
@@ -151,18 +162,27 @@ interface PlanCardProps {
 }
 
 function PlanCard({ plan, mode, isLoading, onSelect }: PlanCardProps) {
-  const price = mode === "lifetime" ? plan.lifetimePrice : plan.subscriptionPrice;
+  const price =
+    mode === "lifetime" ? plan.lifetimePrice : plan.subscriptionPrice;
   const period = mode === "lifetime" ? " sekali bayar" : plan.period;
 
   return (
-    <Card className={plan.highlighted ? "border-primary shadow-lg shadow-primary/10 scale-105" : ""}>
+    <Card
+      className={
+        plan.highlighted
+          ? "border-primary shadow-lg shadow-primary/10 scale-105"
+          : ""
+      }
+    >
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>{plan.name}</CardTitle>
           {plan.highlighted && <Badge>Populer</Badge>}
         </div>
         <div className="mt-2">
-          <span className="text-3xl font-extrabold text-foreground">{price}</span>
+          <span className="text-3xl font-extrabold text-foreground">
+            {price}
+          </span>
           <span className="text-muted-foreground">{period}</span>
         </div>
         <p className="text-sm text-muted-foreground">{plan.description}</p>
@@ -203,16 +223,26 @@ interface CancelSubscriptionCardProps {
   onCancel: () => void;
 }
 
-function CancelSubscriptionCard({ isLoading, onCancel }: CancelSubscriptionCardProps) {
+function CancelSubscriptionCard({
+  isLoading,
+  onCancel,
+}: CancelSubscriptionCardProps) {
   return (
     <div className="rounded-lg border border-border bg-muted/50 p-4 flex items-center justify-between">
       <div>
-        <p className="text-sm font-medium text-foreground">Batalkan Langganan</p>
+        <p className="text-sm font-medium text-foreground">
+          Batalkan Langganan
+        </p>
         <p className="text-xs text-muted-foreground mt-0.5">
           Akses tetap aktif hingga akhir periode berjalan.
         </p>
       </div>
-      <Button variant="destructive" size="sm" onClick={onCancel} disabled={isLoading}>
+      <Button
+        variant="destructive"
+        size="sm"
+        onClick={onCancel}
+        disabled={isLoading}
+      >
         {isLoading ? "Membatalkan..." : "Batalkan"}
       </Button>
     </div>
@@ -226,13 +256,26 @@ export function PricingSection({ profile }: { profile: Profile | null }) {
   const [loading, setLoading] = useState<string | null>(null);
   const router = useRouter();
 
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPlanForSub, setSelectedPlanForSub] = useState<string | null>(
+    null,
+  );
+
   const visiblePlans = getVisiblePlans(profile);
   const isActiveSubscription =
-    profile?.subscription_status === "active" && profile?.payment_type === "subscription";
+    profile?.subscription_status === "active" &&
+    profile?.payment_type === "subscription";
 
   async function handleSelectPlan(planId: string) {
     if (!profile) {
       router.push("/register");
+      return;
+    }
+
+    // If subscription mode and no payment method, show modal first
+    if (mode === "subscription" && !profile.payment_method_id) {
+      setSelectedPlanForSub(planId);
+      setShowPaymentModal(true);
       return;
     }
 
@@ -256,6 +299,17 @@ export function PricingSection({ profile }: { profile: Profile | null }) {
     }
   }
 
+  // New: After linking, proceed to subscription payment
+  const handlePaymentModalSuccess = async () => {
+    setShowPaymentModal(false);
+    if (selectedPlanForSub) {
+      // Refresh profile or optimistic update, then create payment
+      router.refresh();
+      // Trigger handleSelectPlan again or directly call payment API
+      handleSelectPlan(selectedPlanForSub);
+    }
+  };
+
   async function handleCancelSubscription() {
     setLoading("cancel");
     try {
@@ -274,13 +328,19 @@ export function PricingSection({ profile }: { profile: Profile | null }) {
   }
 
   // Lifetime aktif — tidak ada opsi upgrade/downgrade
-  if (profile?.payment_type === "lifetime" && profile?.subscription_status === "active") {
+  if (
+    profile?.payment_type === "lifetime" &&
+    profile?.subscription_status === "active"
+  ) {
     return (
       <section id="pricing" className="py-10 px-4">
         <div className="container mx-auto max-w-lg text-center space-y-3">
-          <Badge variant="default" className="text-sm px-3 py-1">Paket Lifetime Aktif</Badge>
+          <Badge variant="default" className="text-sm px-3 py-1">
+            Paket Lifetime Aktif
+          </Badge>
           <p className="text-muted-foreground text-sm">
-            Anda menggunakan paket <strong>{profile.subscription_plan.toUpperCase()} Lifetime</strong>.
+            Anda menggunakan paket{" "}
+            <strong>{profile.subscription_plan.toUpperCase()} Lifetime</strong>.
             Kuota Anda direset otomatis setiap bulan.
           </p>
         </div>
@@ -292,12 +352,15 @@ export function PricingSection({ profile }: { profile: Profile | null }) {
     <section id="pricing" className="py-10 px-4">
       <div className="container mx-auto space-y-8">
         <div className="text-center space-y-3">
-          <h2 className="text-3xl font-bold text-foreground">Pilih Paket Anda</h2>
+          <h2 className="text-3xl font-bold text-foreground">
+            Pilih Paket Anda
+          </h2>
           <p className="text-muted-foreground">
             Tidak ada biaya tersembunyi. Bayar sesuai kebutuhan.
           </p>
           {/* Toggle hanya muncul jika belum active subscription */}
-          {profile?.payment_type !== "subscription" || profile?.subscription_status !== "active" ? (
+          {profile?.payment_type !== "subscription" ||
+          profile?.subscription_status !== "active" ? (
             <ModeToggle mode={mode} onChange={setMode} />
           ) : null}
         </div>
@@ -329,6 +392,13 @@ export function PricingSection({ profile }: { profile: Profile | null }) {
           </div>
         )}
       </div>
+
+      <LinkPaymentModal
+        profile={profile}
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={handlePaymentModalSuccess}
+      />
     </section>
   );
 }
