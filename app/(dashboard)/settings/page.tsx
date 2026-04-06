@@ -73,7 +73,7 @@ export default async function SettingsPage() {
           </div>
         </CardContent>
       </Card>
-      <PaymentMethodSection profile={profile} />
+      {/* <PaymentMethodSection profile={profile} /> */}
       <PricingSection profile={profile} />
     </div>
   );

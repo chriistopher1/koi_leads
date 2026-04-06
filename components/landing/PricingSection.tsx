@@ -256,10 +256,10 @@ export function PricingSection({ profile }: { profile: Profile | null }) {
   const [loading, setLoading] = useState<string | null>(null);
   const router = useRouter();
 
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedPlanForSub, setSelectedPlanForSub] = useState<string | null>(
-    null,
-  );
+  // const [showPaymentModal, setShowPaymentModal] = useState(false);
+  // const [selectedPlanForSub, setSelectedPlanForSub] = useState<string | null>(
+  //   null,
+  // );
 
   const visiblePlans = getVisiblePlans(profile);
   const isActiveSubscription =
@@ -273,11 +273,11 @@ export function PricingSection({ profile }: { profile: Profile | null }) {
     }
 
     // If subscription mode and no payment method, show modal first
-    if (mode === "subscription" && !profile.payment_method_id) {
-      setSelectedPlanForSub(planId);
-      setShowPaymentModal(true);
-      return;
-    }
+    // if (mode === "subscription" && !profile.payment_method_id) {
+    //   setSelectedPlanForSub(planId);
+    //   setShowPaymentModal(true);
+    //   return;
+    // }
 
     setLoading(planId);
     try {
@@ -300,15 +300,15 @@ export function PricingSection({ profile }: { profile: Profile | null }) {
   }
 
   // New: After linking, proceed to subscription payment
-  const handlePaymentModalSuccess = async () => {
-    setShowPaymentModal(false);
-    if (selectedPlanForSub) {
-      // Refresh profile or optimistic update, then create payment
-      router.refresh();
-      // Trigger handleSelectPlan again or directly call payment API
-      handleSelectPlan(selectedPlanForSub);
-    }
-  };
+  // const handlePaymentModalSuccess = async () => {
+  //   setShowPaymentModal(false);
+  //   if (selectedPlanForSub) {
+  //     // Refresh profile or optimistic update, then create payment
+  //     router.refresh();
+  //     // Trigger handleSelectPlan again or directly call payment API
+  //     handleSelectPlan(selectedPlanForSub);
+  //   }
+  // };
 
   async function handleCancelSubscription() {
     setLoading("cancel");
@@ -393,12 +393,12 @@ export function PricingSection({ profile }: { profile: Profile | null }) {
         )}
       </div>
 
-      <LinkPaymentModal
+      {/* <LinkPaymentModal
         profile={profile}
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         onSuccess={handlePaymentModalSuccess}
-      />
+      /> */}
     </section>
   );
 }

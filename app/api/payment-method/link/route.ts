@@ -35,9 +35,12 @@ export async function POST(request: NextRequest) {
             given_names: user.email,
           },
         },
-        mode: "PAYMENT_LINK",
-        // success_return_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-method/success`,
-        // cancel_return_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-method/failed`,
+        mode: "COMPONENTS",
+        components_configuration: {
+          origins: ["https://unsympathisingly-braw-dulcie.ngrok-free.dev"],
+        },
+        success_return_url: `https://unsympathisingly-braw-dulcie.ngrok-free.dev/payment-method/success`,
+        cancel_return_url: `https://unsympathisingly-braw-dulcie.ngrok-free.dev/payment-method/failed`,
 
         // Or "COMPONENTS" if using SDK
         // Add expires_at if needed: new Date(Date.now() + 15*60*1000).toISOString()

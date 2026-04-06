@@ -27,7 +27,7 @@ export interface CreateRecurringPlanParams {
   email: string;
   name: string;
   subscriptionId: string;
-  customerId: string; // FIX: Xendit-generated customer ID (cust-xxx), wajib
+  customerId: string;// Optional, only if you want to set a default payment method for the recurring plan
 }
 
 export interface CreateCustomerParams {
@@ -136,6 +136,15 @@ export async function getOrCreateXenditCustomer({
   return customer.id;
 }
 
+export async function fetchPaymentMethods(customerId: string) {
+  const res = await fetch(`${XENDIT_BASE}/customers/${customerId}/payment_methods`, {
+    headers: xenditHeaders(),
+  });
+  
+  const data = await res.json();
+  return data.data || []; // Array of {id: "pm_xxx", type: "CARD", ...}
+}
+
 /**
  * Xendit Recurring Plan — dipakai untuk Normal Subscription.
  * FIX:
@@ -145,6 +154,8 @@ export async function getOrCreateXenditCustomer({
  */
 
 export async function createRecurringPlan(params: CreateRecurringPlanParams) {
+
+
   const res = await fetch(`${XENDIT_BASE}/recurring/plans`, {
     method: "POST",
     headers: xenditHeaders(),

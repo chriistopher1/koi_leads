@@ -4,6 +4,7 @@ import {
   createInvoice,
   createRecurringPlan,
   createXenditCustomer,
+  fetchPaymentMethods,
   getOrCreateXenditCustomer,
 } from "@/lib/xendit";
 
@@ -178,10 +179,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // const paymentMethods = await fetchPaymentMethods(xenditCustomerId);
+
+    // console.log("paymentMethods : ", paymentMethods);
+
+    // if (paymentMethods.length === 0 || !paymentMethods[0]?.id) {
+    //   return NextResponse.json(
+    //     { error: "Sambungkan payment method dahulu." },
+    //     { status: 500 },
+    //   );
+    // }
+
     const recurringPlan = await createRecurringPlan({
       userId: user.id,
       plan,
       amount,
+      // paymentMethodId: paymentMethods[0].id!, // Pass payment_method_id if exists (for card on file)
       email: user.email!,
       name,
       subscriptionId: subscription.id,
