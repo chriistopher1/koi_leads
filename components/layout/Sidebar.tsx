@@ -133,11 +133,13 @@ function SidebarLogout() {
 }
 
 export function Sidebar({ profile }: { profile: Profile | null }) {
+  const { state,  } = useSidebar();
+  const isCollapsed = state === "collapsed";
   return (
     <ShadcnSidebar collapsible="icon">
       <SidebarBrand profile={profile} />
       <SidebarNavigation />
-      <SidebarLogout />
+      {!isCollapsed && <SidebarLogout />}
       <SidebarRail />
     </ShadcnSidebar>
   );
