@@ -1,7 +1,9 @@
 const XENDIT_BASE = "https://api.xendit.co";
 
 function xenditHeaders() {
-  const encoded = Buffer.from(`${process.env.XENDIT_API_KEY}:`).toString("base64");
+  const encoded = Buffer.from(`${process.env.XENDIT_API_KEY}:`).toString(
+    "base64",
+  );
   return {
     Authorization: `Basic ${encoded}`,
     "Content-Type": "application/json",
@@ -25,6 +27,13 @@ export interface CreateRecurringPlanParams {
   email: string;
   name: string;
   subscriptionId: string;
+  customerId: string; // FIX: Xendit-generated customer ID (cust-xxx), wajib
+}
+
+export interface CreateCustomerParams {
+  userId: string;
+  email: string;
+  name: string;
 }
 
 /** One-time invoice — dipakai untuk Lifetime Deal */
@@ -41,7 +50,13 @@ export async function createInvoice(params: CreateInvoiceParams) {
       success_redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?payment=success`,
       failure_redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?payment=failed`,
       customer: { given_names: params.name, email: params.email },
-      items: [{ name: `Paket ${params.plan} Lifetime`, quantity: 1, price: params.amount }],
+      items: [
+        {
+          name: `Paket ${params.plan} Lifetime`,
+          quantity: 1,
+          price: params.amount,
+        },
+      ],
       metadata: {
         user_id: params.userId,
         plan: params.plan,
@@ -54,17 +69,88 @@ export async function createInvoice(params: CreateInvoiceParams) {
 }
 
 /**
- * Xendit Recurring Plan — dipakai untuk Normal Subscription.
- * Menggunakan endpoint /recurring/plans dengan immediate_action_type FULL_AMOUNT
- * agar tagihan pertama langsung diproses.
+ * Membuat Xendit Customer dan mengembalikan customer_id (cust-xxx).
+ * customer_id ini wajib disertakan saat membuat Recurring Plan.
  */
+export async function createXenditCustomer(params: CreateCustomerParams) {
+  const res = await fetch(`${XENDIT_BASE}/customers`, {
+    method: "POST",
+    headers: xenditHeaders(),
+    body: JSON.stringify({
+      reference_id: params.userId,
+      type: "INDIVIDUAL",
+      individual_detail: {
+        given_names: params.name,
+      },
+      email: params.email,
+    }),
+  });
+  return res.json();
+}
+
+export async function getOrCreateXenditCustomer({
+  userId,
+  email,
+  name,
+  supabase,
+}: {
+  userId: string;
+  email: string;
+  name: string;
+  supabase: any;
+}) {
+  // 1. Check DB first
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("xendit_customer_id")
+    .eq("id", userId)
+    .single();
+
+  if (profile?.xendit_customer_id) {
+    return profile.xendit_customer_id;
+  }
+
+  // 2. Create new customer
+  const customer = await createXenditCustomer({
+    userId,
+    email,
+    name,
+  });
+
+  // 🔥 Handle duplicate error gracefully
+  if (customer?.error_code === "DUPLICATE_ERROR") {
+    // fallback (optional approach below)
+    throw new Error("Customer already exists but not stored in DB");
+  }
+
+  if (!customer?.id) {
+    throw new Error("Failed to create Xendit customer");
+  }
+
+  // 3. Save to DB
+  await supabase
+    .from("profiles")
+    .update({ xendit_customer_id: customer.id })
+    .eq("id", userId);
+
+  return customer.id;
+}
+
+/**
+ * Xendit Recurring Plan — dipakai untuk Normal Subscription.
+ * FIX:
+ * 1. Hapus customer_id (null tidak valid — harus string atau tidak ada)
+ * 2. Hapus customer object (tidak ada di Recurring Plan API)
+ * 3. Ganti retry_count → total_retry, tambah retry_interval_count
+ */
+
 export async function createRecurringPlan(params: CreateRecurringPlanParams) {
   const res = await fetch(`${XENDIT_BASE}/recurring/plans`, {
     method: "POST",
     headers: xenditHeaders(),
     body: JSON.stringify({
       reference_id: `koileads_sub_${params.subscriptionId}`,
-      customer_id: null,
+      customer_id: params.customerId, // FIX: pakai Xendit customer ID
       recurring_action: "PAYMENT",
       currency: "IDR",
       amount: params.amount,
@@ -75,14 +161,15 @@ export async function createRecurringPlan(params: CreateRecurringPlanParams) {
         interval_count: 1,
         anchor_date: new Date().toISOString(),
         retry_interval: "DAY",
-        retry_count: 3,
-        total_recurrence: null,
+        retry_interval_count: 1,
+        total_retry: 3,
         failed_attempt_notifications: [1, 3],
       },
       immediate_action_type: "FULL_AMOUNT",
       notification_config: {
         locale: "id",
-        payment_notification: ["EMAIL"],
+        recurring_succeeded: ["EMAIL"],
+        recurring_failed: ["EMAIL"],
       },
       failed_cycle_action: "STOP",
       metadata: {
@@ -94,11 +181,6 @@ export async function createRecurringPlan(params: CreateRecurringPlanParams) {
       description: `KoiLeads - Paket ${params.plan} Bulanan`,
       success_return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?payment=success`,
       failure_return_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?payment=failed`,
-      customer: {
-        reference_id: params.userId,
-        given_names: params.name,
-        email: params.email,
-      },
     }),
   });
   return res.json();
@@ -106,10 +188,13 @@ export async function createRecurringPlan(params: CreateRecurringPlanParams) {
 
 /** Cancel recurring plan di Xendit */
 export async function cancelRecurringPlan(xenditSubscriptionId: string) {
-  const res = await fetch(`${XENDIT_BASE}/recurring/plans/${xenditSubscriptionId}/deactivate`, {
-    method: "POST",
-    headers: xenditHeaders(),
-  });
+  const res = await fetch(
+    `${XENDIT_BASE}/recurring/plans/${xenditSubscriptionId}/deactivate`,
+    {
+      method: "POST",
+      headers: xenditHeaders(),
+    },
+  );
   return res.json();
 }
 

@@ -12,7 +12,8 @@ CREATE TABLE profiles (
   scrape_quota_used INTEGER NOT NULL DEFAULT 0,
   scrape_quota_limit INTEGER NOT NULL DEFAULT 50,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  xendit_customer_id TEXT UNIQUE DEFAULT NULL
 );
 
 

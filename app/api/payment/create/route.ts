@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createInvoice, createRecurringPlan } from "@/lib/xendit";
+import {
+  createInvoice,
+  createRecurringPlan,
+  createXenditCustomer,
+  getOrCreateXenditCustomer,
+} from "@/lib/xendit";
 
 const LIFETIME_PRICES: Record<string, number> = {
   pro: 999000,
@@ -156,6 +161,23 @@ export async function POST(req: NextRequest) {
     }
 
     // Normal Subscription — gunakan Xendit Recurring
+    // FIX: Xendit Recurring Plan wajib punya customer_id (Xendit-generated)
+    const xenditCustomerId = await getOrCreateXenditCustomer({
+      userId: user.id,
+      email: user.email!,
+      name,
+      supabase,
+    });
+
+    console.log("xenditCustomerId : ", xenditCustomerId);
+
+    if (!xenditCustomerId) {
+      return NextResponse.json(
+        { error: "Gagal membuat customer Xendit" },
+        { status: 500 },
+      );
+    }
+
     const recurringPlan = await createRecurringPlan({
       userId: user.id,
       plan,
@@ -163,7 +185,10 @@ export async function POST(req: NextRequest) {
       email: user.email!,
       name,
       subscriptionId: subscription.id,
+      customerId: xenditCustomerId, // FIX: pass customer_id
     });
+
+    console.log("recurringPlan : ", recurringPlan);
 
     if (!recurringPlan?.id) {
       return NextResponse.json(
