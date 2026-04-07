@@ -56,7 +56,7 @@ export function ScraperForm() {
   }
 
   return (
-    <Card className="max-w-2xl">
+    <Card className="w-full md:max-w-2xl">
       <CardHeader>
         <CardTitle>Konfigurasi Scraping</CardTitle>
         <CardDescription>
