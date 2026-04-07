@@ -10,25 +10,28 @@ import { Lead } from "@/types";
 import { useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 export function LeadCard({ lead }: { lead: Lead }) {
   const [open, setOpen] = useState(false);
   const [isDrafting, setIsDrafting] = useState<"email" | "instagram_dm" | null>(
     null,
   );
-
+  const router = useRouter();
   const supabase = createClient();
 
   const handleStatusUpdate = async (leadId: string) => {
-    confirm("Apakah Anda yakin ingin membatalkan lead ini?") ||
+    const confirmed = confirm("Apakah Anda yakin ingin membatalkan lead ini?");
+    if (!confirmed) {
       toast.error("Batal mengubah status.");
+      return;
+    }
 
     const { error } = await supabase
       .from("leads")
       .update({ status: "new" })
       .eq("id", leadId);
 
-    // delete all draft associated with this lead
     const { error: deleteError } = await supabase
       .from("outreach_drafts")
       .delete()
@@ -40,6 +43,9 @@ export function LeadCard({ lead }: { lead: Lead }) {
     }
 
     toast.success("Lead di cancel");
+
+    // 👇 IMPORTANT: refresh UI
+    router.refresh();
   };
 
   async function handleDraft(type: "email" | "instagram_dm") {
@@ -59,6 +65,7 @@ export function LeadCard({ lead }: { lead: Lead }) {
       toast.success(
         `${type === "email" ? "Email" : "DM"} draft created successfully.`,
       );
+      router.refresh();
     } catch (err: any) {
       toast.error(err.message);
     } finally {
