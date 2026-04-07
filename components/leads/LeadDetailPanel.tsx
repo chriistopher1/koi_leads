@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { toast } from "sonner";
 import type { Lead, OutreachDraft } from "@/types";
 import { LeadScoreBadge } from "./LeadScoreBadge";
@@ -59,10 +59,10 @@ export function LeadDetailPanel({
         description={currentLead.category ?? ""}
       >
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleScore} disabled={scoring}>
+          {/* <Button variant="outline" onClick={handleScore} disabled={scoring}>
             {scoring ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Skor Ulang
-          </Button>
+          </Button> */}
           <Button variant="outline" onClick={() => setDraftType("email")}>
             <Mail className="h-4 w-4 mr-2" /> Draft Email
           </Button>
@@ -138,10 +138,18 @@ export function LeadDetailPanel({
           </CardHeader>
           <CardContent className="space-y-3">
             <LeadScoreBadge score={currentLead.score} />
-            {currentLead.score_reason && (
-              <p className="text-sm text-muted-foreground">
-                {currentLead.score_reason}
-              </p>
+            {lead.score_reason && (
+              <div className="mt-2 space-y-1 text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                {lead.score_reason
+                  .split("•")
+                  .filter(Boolean)
+                  .map((line, i) => (
+                    <Fragment key={i}>
+                      • {line.trim()}
+                      <br />
+                    </Fragment>
+                  ))}
+              </div>
             )}
           </CardContent>
         </Card>

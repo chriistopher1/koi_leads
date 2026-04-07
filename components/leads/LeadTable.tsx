@@ -21,7 +21,7 @@ import {
   Phone,
   Globe,
   Mail,
-  BadgeCheck,
+  SquareStop,
   Loader2,
   Eye,
   Check,
@@ -211,7 +211,7 @@ export function LeadTable({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <span className="inline-flex">
-                          <BadgeCheck
+                          <SquareStop
                             className="text-primary hover:text-primary/80 h-3.5 w-3.5 transition"
                             aria-label="Instagram"
                           />
@@ -222,7 +222,7 @@ export function LeadTable({
                       </TooltipContent>
                     </Tooltip>
                   ) : (
-                    <BadgeCheck className="h-3.5 w-3.5 text-muted-foreground/50" />
+                    <SquareStop className="h-3.5 w-3.5 text-muted-foreground/50" />
                   )}
                 </div>
               </TableCell>

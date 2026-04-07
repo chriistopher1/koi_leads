@@ -70,7 +70,7 @@ export function ScraperForm() {
             <Input
               id="campaignName"
               name="campaignName"
-              placeholder="Misal: Restoran Jakarta Pusat"
+              placeholder="Misal: Dokter gigi "
               value={form.campaignName}
               onChange={handleChange}
               required
@@ -82,7 +82,7 @@ export function ScraperForm() {
             <Input
               id="searchQuery"
               name="searchQuery"
-              placeholder="Misal: salon kecantikan, bengkel motor, toko baju"
+              placeholder="Misal: dental, bengkel motor, toko baju"
               value={form.searchQuery}
               onChange={handleChange}
               required

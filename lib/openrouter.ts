@@ -59,46 +59,87 @@ async function chatScore(
   }
 }
 
+// lib/openrouter.ts
+
 export async function scoreLead(
   lead: Record<string, unknown>,
 ): Promise<{ score: number; reason: string }> {
-  const prompt = `Kamu adalah analis lead generation profesional. Berikan skor 1-100 untuk lead bisnis berikut berdasarkan potensinya sebagai klien potensial. Pertimbangkan: rating, jumlah ulasan, kelengkapan data kontak, dan kategori bisnis.
+  // --- Normalize fields to avoid "undefined" in prompt ---
+  const name = (lead.name as string) ?? "Tidak diketahui";
+  const category = (lead.category as string) ?? "Tidak diketahui";
+  const rating = lead.rating != null ? `${lead.rating}/5` : "Tidak ada";
+  const reviewCount =
+    lead.review_count != null ? String(lead.review_count) : "Tidak ada";
+  const hasPhone = lead.phone ? "✅ Ada" : "❌ Tidak ada";
+  const hasWebsite = lead.website ? "✅ Ada" : "❌ Tidak ada";
+  const hasEmail = lead.email ? "✅ Ada" : "❌ Tidak ada";
+  const hasInstagram = lead.instagram ? "✅ Ada" : "❌ Tidak ada";
+  const address = (lead.address as string) ?? "Tidak diketahui";
 
-Lead Data:
-- Nama: ${lead.name}
-- Kategori: ${lead.category}
-- Rating: ${lead.rating}/5
-- Jumlah Ulasan: ${lead.review_count}
-- Telepon: ${lead.phone ? "Ada" : "Tidak ada"}
-- Website: ${lead.website ? "Ada" : "Tidak ada"}
-- Email: ${lead.email ? "Ada" : "Tidak ada"}
-- Instagram: ${lead.instagram ? "Ada" : "Tidak ada"}
+  // --- Contact completeness score pre-calculated to guide the model ---
+  const contactScore =
+    (lead.phone ? 25 : 0) +
+    (lead.website ? 25 : 0) +
+    (lead.email ? 30 : 0) +
+    (lead.instagram ? 20 : 0);
 
-Berikan skor antara 0 - 100 (0 = sangat buruk, 100 = sangat bagus).
+  const systemPrompt = `Kamu adalah analis lead generation B2B profesional yang membantu tim sales digital marketing agency menemukan calon klien terbaik di Indonesia.
+  
+Tugas kamu: Berikan skor kualitas lead (0–100) berdasarkan data bisnis dari Google Maps.
 
-Susun penjelasan dalam format bullet point seperti contoh:
-• Email scraped from website
-• 3 platforms - spread thin, needs strategy
-• 0.28% IG engagement - content underperforming
-• 1.1 posts/wk - inconsistent posting
-• 5 stars - excellent business, prime candidate
-• 59 reviews - established local business
-• Never responds to reviews - reputation management opportunity
-• Services identified - can personalize pitch
-• Last post 1d ago - active poster
-• 1.1 posts/wk - below optimal frequency
-• 0.28% engagement - content completely flat
-• 5,259 followers - established, ready for strategy
-• Follow ratio 8.6:1 - strong organic following
+Kriteria penilaian WAJIB mengikuti bobot berikut:
+1. Kelengkapan kontak (35 poin maks):
+   - Email: 30 poin
+   - Telepon: 25 poin
+   - Website: 25 poin
+   - Instagram: 20 poin
+   (Gunakan total poin lalu normalisasi ke 35%)
 
-Balas HANYA dalam format JSON sederhana:
-{"score": 0-100, "reason": "bullet point list seperti contoh di atas dalam Bahasa Indonesia"}`;
+2. Reputasi bisnis / Google Rating (25 poin maks):
+   - Rating 4.5–5.0 → 25 poin
+   - Rating 4.0–4.4 → 20 poin
+   - Rating 3.5–3.9 → 12 poin
+   - Rating < 3.5 atau tidak ada → 5 poin
+
+3. Jumlah ulasan / review count (20 poin maks):
+   - > 200 ulasan → 20 poin
+   - 100–200 → 16 poin
+   - 50–99 → 12 poin
+   - 20–49 → 8 poin
+   - < 20 → 4 poin
+
+4. Relevansi kategori bisnis untuk digital marketing (20 poin maks):
+   - Tinggi (restoran, salon, klinik, properti, hotel, retail fashion) → 20 poin
+   - Sedang (bengkel, toko elektronik, jasa konsultan) → 12 poin
+   - Rendah (warung kecil, toko sembako, layanan pemerintah) → 4 poin
+
+Balas HANYA dalam format JSON:
+{"score": 0-100, "reason": "bullet points singkat dalam Bahasa Indonesia"}`;
+
+  const userPrompt = `Lead Data:
+- Nama: ${name}
+- Kategori: ${category}
+- Alamat: ${address}
+- Rating Google: ${rating}
+- Jumlah Ulasan: ${reviewCount}
+- Telepon: ${hasPhone}
+- Website: ${hasWebsite}
+- Email: ${hasEmail}
+- Instagram: ${hasInstagram}
+- Skor Kontak Awal (kalkulasi): ${contactScore}/100
+
+Berikan skor final 0–100 sesuai bobot di atas. 
+Format reason sebagai bullet point ringkas, contoh:
+•  Email tersedia — bisa dihubungi langsung
+•  Rating 3.8 — reputasi rata-rata
+•  142 ulasan — bisnis cukup establish
+•  Kategori salon kecantikan — target ideal digital marketing
+•  Tidak ada website — peluang jual jasa web
+•  Tidak ada Instagram — peluang upsell social media management`;
 
   const messages: ChatMessage[] = [
-    {
-      role: "user",
-      content: prompt,
-    },
+    { role: "system", content: systemPrompt },
+    { role: "user", content: userPrompt },
   ];
 
   return chatScore(messages);

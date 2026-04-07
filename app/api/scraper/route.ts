@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { scrapeGoogleMaps, mapApifyLeadToLead } from "@/lib/apify";
+import { scrapeGoogleMaps, mapApifyLeadToLead } from "@/lib/rapidapi";
 import { scoreLead } from "@/lib/openrouter";
 
 export async function POST(req: NextRequest) {
