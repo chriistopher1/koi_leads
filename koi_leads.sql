@@ -168,6 +168,7 @@ CREATE INDEX idx_leads_score ON leads(score DESC NULLS LAST);
 CREATE INDEX idx_campaigns_user_id ON campaigns(user_id);
 CREATE INDEX idx_outreach_drafts_lead_id ON outreach_drafts(lead_id);
 CREATE INDEX idx_payments_user_id ON payments(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_leads_place_id_user ON leads(user_id, place_id);
 
 -- Enable RLS on all tables
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
