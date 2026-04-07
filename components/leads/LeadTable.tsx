@@ -127,12 +127,20 @@ export function LeadTable({
             <TableRow key={lead.id}>
               {/* Business name */}
               <TableCell className="font-medium">
-                <Link
+                {/* <Link
                   href={`/leads/${lead.id}`}
                   className="text-primary hover:underline"
                 >
                   {lead.name}
-                </Link>
+                </Link> */}
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setViewLead(lead)}
+                    className="text-xs"
+                  >
+                   {lead.name}
+                  </Button>
               </TableCell>
 
               {/* Niche */}
