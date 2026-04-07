@@ -1,10 +1,12 @@
+// app/leads/LeadsPage.tsx
 import { createClient } from "@/lib/supabase/server";
 import { MapPin } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { LeadTable } from "@/components/leads/LeadTable";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { LeadTabs } from "@/components/leads/LeadTabs";
+import type { Lead } from "@/types";
 
 export default async function LeadsPage() {
   const supabase = await createClient();
@@ -17,15 +19,20 @@ export default async function LeadsPage() {
     .order("score", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 
+  const enrichedLeads =
+    leads?.map((lead) => ({ ...lead, status: lead.status as Lead["status"] })) ??
+    [];
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Daftar Leads" description={`${leads?.length ?? 0} lead ditemukan`}>
+      <PageHeader title="Daftar Leads" description={`${enrichedLeads.length} lead ditemukan`}>
         <Button asChild>
           <Link href="/scraper">+ Scrape Baru</Link>
         </Button>
       </PageHeader>
-      {leads && leads.length > 0 ? (
-        <LeadTable leads={leads} />
+
+      {enrichedLeads.length > 0 ? (
+        <LeadTabs leads={enrichedLeads} />
       ) : (
         <EmptyState
           icon={MapPin}

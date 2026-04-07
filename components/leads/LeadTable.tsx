@@ -1,95 +1,313 @@
+// components/leads/LeadTable.tsx
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import type { Lead } from "@/types";
 import { LeadScoreBadge } from "./LeadScoreBadge";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Command } from "@/components/ui/command";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Star, Phone, Globe, Loader2 } from "lucide-react";
+import {
+  Phone,
+  Globe,
+  Mail,
+  BadgeCheck,
+  Loader2,
+  Eye,
+  Check,
+  X,
+  RotateCcw,
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useState } from "react";
+import { LeadViewDialog } from "./LeadViewDialog";
+import { createClient } from "@/lib/supabase/client";
 
-export function LeadTable({ leads }: { leads: Lead[] }) {
+type LeadTableStatus = "new" | "qualified" | "disqualified";
+
+export function LeadTable({
+  leads,
+  status,
+}: {
+  leads: Lead[];
+  status: LeadTableStatus;
+}) {
+  const router = useRouter();
   const [scoring, setScoring] = useState<string | null>(null);
+  const [viewLead, setViewLead] = useState<Lead | null>(null);
 
-  async function handleScore(leadId: string) {
-    setScoring(leadId);
-    try {
-      const res = await fetch("/api/leads/score", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success(`Skor: ${data.score}/100 — ${data.reason}`);
-        window.location.reload();
-      } else {
-        toast.error(data.error);
-      }
-    } finally {
-      setScoring(null);
+  const supabase = createClient();
+
+  const handleStatusUpdate = async (
+    leadId: string,
+    newStatus: "new" | "qualified" | "disqualified",
+  ) => {
+    const { error } = await supabase
+      .from("leads")
+      .update({ status: newStatus })
+      .eq("id", leadId);
+
+    if (error) {
+      toast.error("Gagal mengubah status.");
+      return;
     }
-  }
+
+    toast.success(
+      newStatus === "qualified"
+        ? "Lead telah disetujui."
+        : newStatus === "new"
+          ? "Lead direstore."
+          : "Lead telah diberi status disqualified.",
+    );
+    router.refresh();
+  };
+
+  // async function handleScore(leadId: string) {
+  //   setScoring(leadId);
+  //   try {
+  //     const res = await fetch("/api/leads/score", {
+  //       method: "POST",
+  //       headers: { "Content-Type": application/json" },
+  //       body: JSON.stringify({ leadId }),
+  //     });
+  //     const data = await res.json();
+  //     if (res.ok) {
+  //       toast.success(`Skor: ${data.score}/100 — ${data.reason}`);
+  //       router.refresh();
+  //     } else {
+  //       toast.error(data.error);
+  //     }
+  //   } finally {
+  //     setScoring(null);
+  //   }
+  // }
 
   return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Nama Bisnis</TableHead>
-            <TableHead>Kategori</TableHead>
+            <TableHead>Bisnis</TableHead>
+            <TableHead>Niche</TableHead>
             <TableHead>Kota</TableHead>
-            <TableHead>Rating</TableHead>
-            <TableHead>Kontak</TableHead>
             <TableHead>Skor</TableHead>
+            <TableHead>Kontak</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Aksi</TableHead>
           </TableRow>
         </TableHeader>
+
         <TableBody>
+          {leads.length === 0 && (
+            <TableRow>
+              <TableCell
+                colSpan={7}
+                className="text-center text-muted-foreground"
+              >
+                Tidak ada lead pada tab ini.
+              </TableCell>
+            </TableRow>
+          )}
+
           {leads.map((lead) => (
             <TableRow key={lead.id}>
+              {/* Business name */}
               <TableCell className="font-medium">
-                <Link href={`/leads/${lead.id}`} className="text-primary hover:underline">
+                <Link
+                  href={`/leads/${lead.id}`}
+                  className="text-primary hover:underline"
+                >
                   {lead.name}
                 </Link>
               </TableCell>
-              <TableCell className="text-muted-foreground text-sm">{lead.category ?? "-"}</TableCell>
-              <TableCell className="text-muted-foreground text-sm">{lead.city ?? "-"}</TableCell>
-              <TableCell>
-                {lead.rating ? (
-                  <span className="flex items-center gap-1 text-sm">
-                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                    {lead.rating} ({lead.review_count})
-                  </span>
-                ) : "-"}
+
+              {/* Niche */}
+              <TableCell className="text-sm text-muted-foreground">
+                {lead.category ?? "-"}
               </TableCell>
+
+              {/* City */}
+              <TableCell className="text-sm text-muted-foreground">
+                {lead.city ?? "-"}
+              </TableCell>
+
+              {/* Score badge */}
+              <TableCell>
+                <LeadScoreBadge score={lead.score} />
+              </TableCell>
+
+              {/* Contact icons */}
               <TableCell>
                 <div className="flex gap-1">
-                  {lead.phone && <Phone className="h-3.5 w-3.5 text-green-600" />}
-                  {lead.website && <Globe className="h-3.5 w-3.5 text-blue-600" />}
+                  {lead.email ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex">
+                          <Mail
+                            className="text-primary hover:text-primary/80 h-3.5 w-3.5 transition"
+                            aria-label="Email"
+                          />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{lead.email}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <Mail className="h-3.5 w-3.5 text-muted-foreground/50" />
+                  )}
+
+                  {lead.phone ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex">
+                          <Phone
+                            className="text-primary hover:text-primary/80 h-3.5 w-3.5 transition"
+                            aria-label="Phone"
+                          />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{lead.phone}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <Phone className="h-3.5 w-3.5 text-muted-foreground/50" />
+                  )}
+
+                  {lead.website ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex">
+                          <Globe
+                            className="text-primary hover:text-primary/80 h-3.5 w-3.5 transition"
+                            aria-label="Website"
+                          />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{lead.website}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <Globe className="h-3.5 w-3.5 text-muted-foreground/50" />
+                  )}
+
+                  {lead.instagram ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex">
+                          <BadgeCheck
+                            className="text-primary hover:text-primary/80 h-3.5 w-3.5 transition"
+                            aria-label="Instagram"
+                          />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{lead.instagram}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <BadgeCheck className="h-3.5 w-3.5 text-muted-foreground/50" />
+                  )}
                 </div>
               </TableCell>
-              <TableCell><LeadScoreBadge score={lead.score} /></TableCell>
+
+              {/* Status badge */}
               <TableCell>
-                <Badge variant="outline">{lead.status}</Badge>
-              </TableCell>
-              <TableCell>
-                <Button
-                  size="sm"
+                <Badge
                   variant="outline"
-                  onClick={() => handleScore(lead.id)}
-                  disabled={scoring === lead.id}
+                  className={
+                    lead.status === "new"
+                      ? "text-muted-foreground"
+                      : lead.status === "qualified"
+                        ? "bg-green-100 text-green-800 border-green-200"
+                        : "bg-destructive/15 text-destructive border-destructive/20"
+                  }
                 >
-                  {scoring === lead.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Skor AI"}
-                </Button>
+                  {lead.status}
+                </Badge>
+              </TableCell>
+
+              {/* Actions */}
+              <TableCell>
+                <div className="flex gap-1">
+                  {status === "new" && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          await handleStatusUpdate(lead.id, "qualified");
+                        }}
+                        className="gap-1 text-xs"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        Approve
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          await handleStatusUpdate(lead.id, "disqualified");
+                        }}
+                        className="gap-1 text-xs"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                        Skip
+                      </Button>
+                    </>
+                  )}
+
+                  {status === "disqualified" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        await handleStatusUpdate(lead.id, "new");
+                      }}
+                      className="gap-1 text-xs"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                      Restore
+                    </Button>
+                  )}
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setViewLead(lead)}
+                    className="text-xs"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      {/* View dialog */}
+      <LeadViewDialog
+        lead={viewLead}
+        onOpenChange={(open) => !open && setViewLead(null)}
+      />
     </div>
   );
 }
