@@ -1,4 +1,4 @@
-// components/leads/LeadFilters.tsx
+// components/leads/LeadFilter.tsx
 "use client";
 
 import { Search } from "lucide-react";
@@ -16,11 +16,17 @@ type ScoreFilter = "all" | "70+" | "50-69" | "below-50";
 export function LeadFilters({
   scoreFilter,
   setScoreFilter,
+  categoryFilter,
+  setCategoryFilter,
+  uniqueCategories,
   search,
   setSearch,
 }: {
   scoreFilter: ScoreFilter;
   setScoreFilter: (v: ScoreFilter) => void;
+  categoryFilter: "all" | string;
+  setCategoryFilter: (v: "all" | string) => void;
+  uniqueCategories: string[];
   search: string;
   setSearch: (v: string) => void;
 }) {
@@ -45,6 +51,20 @@ export function LeadFilters({
           <SelectItem value="70+">70+</SelectItem>
           <SelectItem value="50-69">50–69</SelectItem>
           <SelectItem value="below-50">Di bawah 50</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v)}>
+        <SelectTrigger className="w-44">
+          <SelectValue placeholder="Kategori" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Semua kategori</SelectItem>
+          {uniqueCategories.map((cat) => (
+            <SelectItem key={cat} value={cat}>
+              {cat}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

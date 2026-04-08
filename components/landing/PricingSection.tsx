@@ -372,7 +372,7 @@ export function PricingSection({ profile }: { profile: Profile | null }) {
 
   return (
     <section id="pricing" className="py-10 px-4">
-      <div className="container mx-auto space-y-8">
+      <div className="container mx-auto space-y-8 ">
         <div className="text-center space-y-3">
           <h2 className="text-3xl font-bold text-foreground">
             Pilih Paket Anda
@@ -388,7 +388,7 @@ export function PricingSection({ profile }: { profile: Profile | null }) {
         </div>
 
         {visiblePlans.length > 0 ? (
-          <div className="mx-auto grid max-w-3xl gap-6 md:grid-cols-2">
+          <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3 ">
             {visiblePlans.map((plan) => (
               <PlanCard
                 key={plan.id}

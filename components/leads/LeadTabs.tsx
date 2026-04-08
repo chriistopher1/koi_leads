@@ -11,6 +11,7 @@ import { LeadFilters } from "./LeadFilter";
 export function LeadTabs({ leads }: { leads: Lead[] }) {
   const [statusFilter, setStatusFilter] = useState<Lead["status"]>("new");
   const [scoreFilter, setScoreFilter] = useState<"all" | "70+" | "50-69" | "below-50">("all");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | string>("all");
   const [search, setSearch] = useState<string>("");
 
   const filtered = leads
@@ -25,13 +26,22 @@ export function LeadTabs({ leads }: { leads: Lead[] }) {
       if (scoreFilter === "70+") return s >= 70;
       if (scoreFilter === "50-69") return s >= 50 && s < 70;
       return s < 50;
+    })
+    .filter((l) => {
+      if (categoryFilter === "all") return true;
+      return l.category === categoryFilter;
     });
+
+  const uniqueCategories = Array.from(new Set(leads.map(l => l.category).filter(Boolean) as string[]));
 
   return (
     <div className="space-y-4">
       <LeadFilters
         scoreFilter={scoreFilter}
         setScoreFilter={setScoreFilter}
+        categoryFilter={categoryFilter}
+        setCategoryFilter={setCategoryFilter}
+        uniqueCategories={uniqueCategories}
         search={search}
         setSearch={setSearch}
       />

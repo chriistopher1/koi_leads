@@ -82,7 +82,7 @@ export function ScraperForm() {
             <Input
               id="searchQuery"
               name="searchQuery"
-              placeholder="Misal: dental, bengkel motor, toko baju"
+              placeholder="Misal: dental | bengkel motor | toko baju"
               value={form.searchQuery}
               onChange={handleChange}
               required
@@ -94,7 +94,7 @@ export function ScraperForm() {
             <Input
               id="location"
               name="location"
-              placeholder="Misal: Jakarta Selatan, Surabaya, Bandung"
+              placeholder="Misal: Jakarta Selatan | Surabaya | Bandung"
               value={form.location}
               onChange={handleChange}
               required
