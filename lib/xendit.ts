@@ -16,7 +16,7 @@ export interface CreateInvoiceParams {
   amount: number;
   email: string;
   name: string;
-  paymentType: "lifetime" | "subscription";
+  paymentType: "lifetime" | "onetime";
   subscriptionId?: string;
 }
 
@@ -38,6 +38,7 @@ export interface CreateCustomerParams {
 
 /** One-time invoice — dipakai untuk Lifetime Deal */
 export async function createInvoice(params: CreateInvoiceParams) {
+  console.log("paymentType : ", params.paymentType);
   const res = await fetch(`${XENDIT_BASE}/v2/invoices`, {
     method: "POST",
     headers: xenditHeaders(),
@@ -46,13 +47,17 @@ export async function createInvoice(params: CreateInvoiceParams) {
       amount: params.amount,
       currency: "IDR",
       payer_email: params.email,
-      description: `KoiLeads - Paket ${params.plan} (Lifetime)`,
+      description: `KoiLeads - Paket ${params.plan} (${
+        params.paymentType === "onetime" ? "one time" : "lifetime"
+      })`,
       success_redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?payment=success`,
       failure_redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?payment=failed`,
       customer: { given_names: params.name, email: params.email },
       items: [
         {
-          name: `Paket ${params.plan} Lifetime`,
+          name: `Paket ${params.plan} ${
+            params.paymentType === "onetime" ? "one time" : "lifetime"
+          }`,
           quantity: 1,
           price: params.amount,
         },
@@ -60,7 +65,7 @@ export async function createInvoice(params: CreateInvoiceParams) {
       metadata: {
         user_id: params.userId,
         plan: params.plan,
-        payment_type: "lifetime",
+        payment_type: params.paymentType,
         subscription_id: params.subscriptionId,
       },
     }),

@@ -1,7 +1,14 @@
 export type SubscriptionPlan = "free" | "pro" | "business";
-export type SubscriptionStatus = "active" | "inactive" | "trial";
+export type SubscriptionStatus =
+  | "active"
+  | "inactive"
+  | "trial"
+  | "failed"
+  | "cancelled";
 export type LeadStatus = "new" | "contacted" | "qualified" | "disqualified";
 export type OutreachType = "email" | "instagram_dm";
+export type PaymentType = "none" | "lifetime" | "onetime";
+export type BillingCycle = "1month" | "12month" | "lifetime";
 
 export interface Profile {
   id: string;
@@ -71,3 +78,4 @@ export interface Payment {
   status: "pending" | "paid" | "failed" | "expired";
   created_at: string;
 }
+

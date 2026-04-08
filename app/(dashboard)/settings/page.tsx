@@ -52,8 +52,8 @@ export default async function SettingsPage() {
             <Badge variant="outline">
               {profile?.payment_type === "lifetime"
                 ? "Lifetime"
-                : profile?.payment_type === "subscription"
-                  ? "Bulanan"
+                : profile?.payment_type === "onetime"
+                  ? "One Time"
                   : "-"}
             </Badge>
           </div>
