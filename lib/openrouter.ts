@@ -61,6 +61,7 @@ async function chatScore(
 
 // lib/openrouter.ts
 
+// lib/openrouter.ts
 export async function scoreLead(
   lead: Record<string, unknown>,
 ): Promise<{ score: number; reason: string }> {
@@ -75,8 +76,13 @@ export async function scoreLead(
   const hasEmail = lead.email ? "✅ Ada" : "❌ Tidak ada";
   const hasInstagram = lead.instagram ? "✅ Ada" : "❌ Tidak ada";
   const address = (lead.address as string) ?? "Tidak diketahui";
+  const city = (lead.city as string) ?? "Tidak diketahui";
 
-  // --- Contact completeness score pre-calculated to guide the model ---
+  // --- Enhanced social media analysis ---
+  const instagram = lead.instagram as string | null;
+  const website = lead.website as string | null;
+
+  // Contact completeness score pre-calculated to guide the model
   const contactScore =
     (lead.phone ? 25 : 0) +
     (lead.website ? 25 : 0) +
@@ -84,16 +90,16 @@ export async function scoreLead(
     (lead.instagram ? 20 : 0);
 
   const systemPrompt = `Kamu adalah analis lead generation B2B profesional yang membantu tim sales digital marketing agency menemukan calon klien terbaik di Indonesia.
-  
-Tugas kamu: Berikan skor kualitas lead (0–100) berdasarkan data bisnis dari Google Maps.
+
+Tugas kamu: Berikan skor kualitas lead (0–100) berdasarkan data bisnis dari Google Maps + analisis mendalam social media & website presence.
 
 Kriteria penilaian WAJIB mengikuti bobot berikut:
+
 1. Kelengkapan kontak (35 poin maks):
-   - Email: 30 poin
+   - Email: 30 poin (website email +20 bonus)
    - Telepon: 25 poin
    - Website: 25 poin
    - Instagram: 20 poin
-   (Gunakan total poin lalu normalisasi ke 35%)
 
 2. Reputasi bisnis / Google Rating (25 poin maks):
    - Rating 4.5–5.0 → 25 poin
@@ -113,29 +119,86 @@ Kriteria penilaian WAJIB mengikuti bobot berikut:
    - Sedang (bengkel, toko elektronik, jasa konsultan) → 12 poin
    - Rendah (warung kecil, toko sembako, layanan pemerintah) → 4 poin
 
+Berikan breakdown DETAIL seperti contoh:
+Score Breakdown
+• Email scraped from website
+• Contact: [Nama Bisnis]
+• 4 platforms - spread thin, needs strategy
+• 0.13% IG engagement - content underperforming
+• 1.3 posts/wk - inconsistent posting
+• 4.9 stars - excellent business, prime candidate
+• 76 reviews - established local business
+
 Balas HANYA dalam format JSON:
-{"score": 0-100, "reason": "bullet points singkat dalam Bahasa Indonesia"}`;
+{"score": 0-100, "reason": "bullet points detail dalam Bahasa Indonesia"}`;
 
-  const userPrompt = `Lead Data:
-- Nama: ${name}
-- Kategori: ${category}
-- Alamat: ${address}
-- Rating Google: ${rating}
-- Jumlah Ulasan: ${reviewCount}
-- Telepon: ${hasPhone}
-- Website: ${hasWebsite}
-- Email: ${hasEmail}
-- Instagram: ${hasInstagram}
-- Skor Kontak Awal (kalkulasi): ${contactScore}/100
+  const userPrompt = `Lead Data Lengkap:
+Nama: ${name}
+Kategori: ${category}
+Kota: ${city}
+Alamat: ${address}
+Rating Google: ${rating}
+Jumlah Ulasan: ${reviewCount}
+Telepon: ${hasPhone}
+Website: ${hasWebsite}
+Email: ${hasEmail}
+Instagram: ${hasInstagram}
+Kontak Score: ${contactScore}/100
 
-Berikan skor final 0–100 sesuai bobot di atas. 
-Format reason sebagai bullet point ringkas, contoh:
-•  Email tersedia — bisa dihubungi langsung
-•  Rating 3.8 — reputasi rata-rata
-•  142 ulasan — bisnis cukup establish
-•  Kategori salon kecantikan — target ideal digital marketing
-•  Tidak ada website — peluang jual jasa web
-•  Tidak ada Instagram — peluang upsell social media management`;
+INSTRUKSI KHUSUS - Buat breakdown detail seperti contoh:
+
+1. Email source (website scraped / Google?)
+2. Contact completeness: ${contactScore}/100 poin
+3. Platform presence: ${hasPhone ? "phone" : ""} ${
+    hasWebsite ? "website" : ""
+  } ${hasEmail ? "email" : ""} ${hasInstagram ? "instagram" : ""}${
+    [hasPhone, hasWebsite, hasEmail, hasInstagram].filter(Boolean).length > 3
+      ? " - multi-platform, needs unified strategy"
+      : ""
+  }
+4. Rating analysis: ${
+    rating === "Tidak ada"
+      ? "No reviews - new business opportunity"
+      : `${rating} stars - ${
+          Number(lead.rating)! >= 4.5
+            ? "excellent"
+            : Number(lead.rating)! >= 4.0
+              ? "solid"
+              : Number(lead.rating)! >= 3.5
+                ? "average"
+                : "needs reputation management"
+        }`
+  }
+5. Review volume: ${
+    reviewCount === "Tidak ada"
+      ? "No reviews - fresh business"
+      : Number(reviewCount) > 200
+        ? "high volume - established"
+        : Number(reviewCount) > 100
+          ? "good volume"
+          : Number(reviewCount) > 50
+            ? "moderate"
+            : Number(reviewCount) > 20
+              ? "growing"
+              : "low - growth potential"
+  }
+6. Instagram analysis (jika ada): ${
+    instagram
+      ? `Active IG presence - needs engagement audit, ${
+          website && instagram ? "IG bio link consistency check" : ""
+        }`
+      : "No IG - social media opportunity"
+  }
+7. Website analysis (jika ada): ${
+    website
+      ? `Has website - check SEO/lead gen optimization`
+      : "No website - complete digital transformation opportunity"
+  }
+8. Category fit: ${category} - digital marketing relevance assessment
+9. Multi-platform consistency check
+10. Business maturity signals
+
+Berikan skor final 0–100 sesuai bobot. Format reason SEPERTI CONTOH dengan minimal 12-15 bullet points detail dalam Bahasa Indonesia.`;
 
   const messages: ChatMessage[] = [
     { role: "system", content: systemPrompt },

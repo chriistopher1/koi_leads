@@ -134,42 +134,42 @@ export function LeadTable({
                   {lead.name}
                 </Link> */}
                 <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setViewLead(lead)}
-                    className="text-xs"
-                  >
-                   {lead.name}
-                  </Button>
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setViewLead(lead)}
+                  className="text-xs"
+                >
+                  {lead.name}
+                </Button>
               </TableCell>
-
               {/* Niche */}
               <TableCell className="text-sm text-muted-foreground">
                 {lead.category ?? "-"}
               </TableCell>
-
               {/* City */}
               <TableCell className="text-sm text-muted-foreground">
                 {lead.city ?? "-"}
               </TableCell>
-
               {/* Score badge */}
               <TableCell>
                 <LeadScoreBadge score={lead.score} />
               </TableCell>
-
               {/* Contact icons */}
+            
               <TableCell>
                 <div className="flex gap-1">
                   {lead.email ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="inline-flex">
+                        <a
+                          href={`mailto:${lead.email}`}
+                          className="inline-flex hover:no-underline focus-visible:no-underline"
+                        >
                           <Mail
-                            className="text-primary hover:text-primary/80 h-3.5 w-3.5 transition"
+                            className="text-primary hover:text-primary/80 h-3.5 w-3.5 transition cursor-pointer"
                             aria-label="Email"
                           />
-                        </span>
+                        </a>
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>{lead.email}</p>
@@ -182,12 +182,15 @@ export function LeadTable({
                   {lead.phone ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="inline-flex">
+                        <a
+                          href={`tel:${lead.phone.replace(/[^+\d]/g, "")}`}
+                          className="inline-flex hover:no-underline focus-visible:no-underline"
+                        >
                           <Phone
-                            className="text-primary hover:text-primary/80 h-3.5 w-3.5 transition"
+                            className="text-primary hover:text-primary/80 h-3.5 w-3.5 transition cursor-pointer"
                             aria-label="Phone"
                           />
-                        </span>
+                        </a>
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>{lead.phone}</p>
@@ -200,12 +203,21 @@ export function LeadTable({
                   {lead.website ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="inline-flex">
+                        <a
+                          href={
+                            lead.website.startsWith("http")
+                              ? lead.website
+                              : `https://${lead.website}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex hover:no-underline focus-visible:no-underline"
+                        >
                           <Globe
-                            className="text-primary hover:text-primary/80 h-3.5 w-3.5 transition"
+                            className="text-primary hover:text-primary/80 h-3.5 w-3.5 transition cursor-pointer"
                             aria-label="Website"
                           />
-                        </span>
+                        </a>
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>{lead.website}</p>
@@ -218,12 +230,20 @@ export function LeadTable({
                   {lead.instagram ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="inline-flex">
+                        <a
+                          href={`https://www.instagram.com/${lead.instagram.replace(
+                            "@",
+                            "",
+                          )}/`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex hover:no-underline focus-visible:no-underline"
+                        >
                           <SquareStop
-                            className="text-primary hover:text-primary/80 h-3.5 w-3.5 transition"
+                            className="text-primary hover:text-primary/80 h-3.5 w-3.5 transition cursor-pointer"
                             aria-label="Instagram"
                           />
-                        </span>
+                        </a>
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>{lead.instagram}</p>
@@ -234,7 +254,6 @@ export function LeadTable({
                   )}
                 </div>
               </TableCell>
-
               {/* Status badge */}
               <TableCell>
                 <Badge
@@ -250,7 +269,6 @@ export function LeadTable({
                   {lead.status}
                 </Badge>
               </TableCell>
-
               {/* Actions */}
               <TableCell>
                 <div className="flex gap-1">
