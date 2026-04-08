@@ -10,6 +10,7 @@ import {
   Send,
   Settings,
   LogOut,
+  HelpCircle,
 } from "lucide-react";
 
 import type { Profile } from "@/types";
@@ -38,6 +39,7 @@ const navItems = [
   { href: "/leads", label: "Leads", icon: Users },
   { href: "/outreach", label: "Outreach", icon: Send },
   { href: "/settings", label: "Pengaturan", icon: Settings },
+  { href: "/support", label: "Support", icon: HelpCircle },
 ];
 
 function SidebarBrand({ profile }: { profile: Profile | null }) {
