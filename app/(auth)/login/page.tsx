@@ -1,34 +1,38 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "sonner";
-import { MapPin } from "lucide-react";
-import Image from "next/image";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const supabase = createClient();
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleGoogleSignIn() {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+      },
+    });
+
     if (error) {
-      toast.error("Login gagal: " + error.message);
-    } else {
-      router.push("/dashboard");
+      toast.error("Login Google gagal: " + error.message);
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
@@ -36,32 +40,31 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
-             <Image src="/app_logo.png" alt="KoiLeads Logo" width={62} height={62} />
+            <Image src="/app_logo.png" alt="KoiLeads Logo" width={62} height={62} />
           </div>
           <CardTitle className="text-2xl">Masuk ke KoiLeads</CardTitle>
-          <CardDescription>Masukkan email dan password Anda</CardDescription>
+          <CardDescription>Masuk hanya dengan akun Google Anda</CardDescription>
         </CardHeader>
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="kamu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-3 mt-3">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Memproses..." : "Masuk"}
-            </Button>
-            <p className="text-sm text-muted-foreground">
-              Belum punya akun?{" "}
-              <Link href="/register" className="text-primary hover:underline">Daftar sekarang</Link>
-            </p>
-          </CardFooter>
-        </form>
+
+        <CardContent>
+          <Button
+            type="button"
+            className="w-full"
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+          >
+            {loading ? "Memproses..." : "Masuk dengan Google"}
+          </Button>
+        </CardContent>
+
+        <CardFooter className="flex flex-col gap-3 mt-3">
+          <p className="text-sm text-muted-foreground">
+            Belum punya akun?{" "}
+            <Link href="/register" className="text-primary hover:underline">
+              Daftar sekarang
+            </Link>
+          </p>
+        </CardFooter>
       </Card>
     </div>
   );

@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -16,36 +14,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { MapPin } from "lucide-react";
-import Image from "next/image";
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const supabase = createClient();
 
-  async function handleRegister(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleGoogleRegister() {
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
       options: {
-        data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },
     });
+
     if (error) {
-      console.log("Registration error:", error);
-      toast.error("Registrasi gagal: " + error.message);
-    } else {
-      toast.success("Registrasi berhasil! Cek email Anda untuk verifikasi.");
-      router.push("/login");
+      toast.error("Registrasi Google gagal: " + error.message);
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
@@ -53,61 +40,31 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
-             <Image src="/app_logo.png" alt="KoiLeads Logo"  width={62} height={62} />
+            <Image src="/app_logo.png" alt="KoiLeads Logo" width={62} height={62} />
           </div>
           <CardTitle className="text-2xl">Daftar KoiLeads</CardTitle>
-          <CardDescription>
-            Mulai temukan leads bisnis terbaik Anda
-          </CardDescription>
+          <CardDescription>Daftar cepat hanya dengan akun Google</CardDescription>
         </CardHeader>
-        <form onSubmit={handleRegister}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Nama Lengkap</Label>
-              <Input
-                id="fullName"
-                placeholder="John Doe"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="kamu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Minimal 6 karakter"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-3 mt-3">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Mendaftar..." : "Daftar Gratis"}
-            </Button>
-            <p className="text-sm text-muted-foreground">
-              Sudah punya akun?{" "}
-              <Link href="/login" className="text-primary hover:underline">
-                Masuk di sini
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
+
+        <CardContent>
+          <Button
+            type="button"
+            className="w-full"
+            onClick={handleGoogleRegister}
+            disabled={loading}
+          >
+            {loading ? "Memproses..." : "Daftar dengan Google"}
+          </Button>
+        </CardContent>
+
+        <CardFooter className="flex flex-col gap-3 mt-3">
+          <p className="text-sm text-muted-foreground">
+            Sudah punya akun?{" "}
+            <Link href="/login" className="text-primary hover:underline">
+              Masuk di sini
+            </Link>
+          </p>
+        </CardFooter>
       </Card>
     </div>
   );
