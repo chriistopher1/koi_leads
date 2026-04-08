@@ -98,21 +98,71 @@ export async function POST(req: NextRequest) {
 
     // console.log("halo6");
 
-    // Buat record subscription terlebih dahulu
-    const { data: subscription, error: subError } = await supabase
-      .from("subscriptions")
-      .insert({
-        user_id: user.id,
-        plan,
-        payment_type: paymentType,
-        status: "pending",
-      })
-      .select()
-      .single();
+    // Cari subscription existing milik user
+    const { data: existingSubscription, error: existingSubError } =
+      await supabase
+        .from("subscriptions")
+        .select(
+          "id, user_id, plan, payment_type, status, xendit_subscription_id, xendit_immediate_invoice_id",
+        )
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+    if (existingSubError) {
+      return NextResponse.json(
+        { error: "Gagal memeriksa subscription user" },
+        { status: 500 },
+      );
+    }
+
+    let subscription = existingSubscription;
+
+    if (!subscription) {
+      const { data: newSubscription, error: subError } = await supabase
+        .from("subscriptions")
+        .insert({
+          user_id: user.id,
+          plan,
+          payment_type: paymentType,
+          status: "pending",
+        })
+        .select()
+        .single();
+
+      if (subError || !newSubscription) {
+        return NextResponse.json(
+          { error: "Gagal membuat data subscription" },
+          { status: 500 },
+        );
+      }
+
+      subscription = newSubscription;
+    } else {
+      const { data: updatedSubscription, error: updateError } = await supabase
+        .from("subscriptions")
+        .update({
+          plan,
+          payment_type: paymentType,
+          status: "pending",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", subscription.id)
+        .select()
+        .single();
+
+      if (updateError || !updatedSubscription) {
+        return NextResponse.json(
+          { error: "Gagal memperbarui data subscription" },
+          { status: 500 },
+        );
+      }
+
+      subscription = updatedSubscription;
+    }
 
     // console.log("halo7");
 
-    if (subError || !subscription) {
+    if (!subscription) {
       return NextResponse.json(
         { error: "Gagal membuat data subscription" },
         { status: 500 },
