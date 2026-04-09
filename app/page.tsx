@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
-import { PricingSection } from "@/components/landing/PricingSection";
+import { PricingSection, ProfileProp } from "@/components/landing/PricingSection";
 import { CTASection } from "@/components/landing/CTASection";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -13,7 +13,7 @@ export default async function LandingPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let profile = null;
+  let profile : ProfileProp | null = null;
 
   if (user) {
     const { data } = await supabase
@@ -23,7 +23,7 @@ export default async function LandingPage() {
     subscription_plan,
     subscription_status,
     payment_type,
-    payment_method_id
+    subscription_ends_at
   `,
       )
       .eq("id", user.id)

@@ -9,10 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PaymentMethodSection } from "@/components/settings/PaymentMethodSection";
-import { Profile } from "@/components/landing/PricingSection"; // Reuse type
+import { ProfileProp } from "@/components/landing/PricingSection"; // Reuse type
 
 interface LinkPaymentModalProps {
-  profile: Profile | null;
+  profile: ProfileProp | null;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;

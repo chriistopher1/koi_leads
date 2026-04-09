@@ -21,7 +21,7 @@ import {
   SubscriptionStatus,
 } from "@/types";
 
-type Profile = {
+export type ProfileProp = {
   subscription_status: SubscriptionStatus;
   subscription_plan: SubscriptionPlan;
   payment_type: PaymentType;
@@ -136,7 +136,7 @@ function getPriceDisplay(
   };
 }
 
-function getVisiblePlans(profile: Profile | null): PlanData[] {
+function getVisiblePlans(profile: ProfileProp | null): PlanData[] {
   if (!profile) return PLANS;
 
   const { subscription_status, subscription_plan, payment_type } = profile;
@@ -211,7 +211,7 @@ interface PlanCardProps {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function isSubscriptionActive(profile: Profile | null): boolean {
+function isSubscriptionActive(profile: ProfileProp | null): boolean {
   if (!profile) return false;
   if (profile.subscription_status !== "active") return false;
 
@@ -227,7 +227,7 @@ function isSubscriptionActive(profile: Profile | null): boolean {
 }
 
 interface ActivePlanGateProps {
-  profile: Profile;
+  profile: ProfileProp;
 }
 
 function ActivePlanGate({ profile }: ActivePlanGateProps) {
@@ -356,7 +356,7 @@ function PlanCard({ plan, cycle, isLoading, onSelect }: PlanCardProps) {
 }
 
 interface ActiveSubscriptionBannerProps {
-  profile: Profile;
+  profile: ProfileProp;
 }
 
 function ActiveSubscriptionBanner({ profile }: ActiveSubscriptionBannerProps) {
@@ -385,7 +385,7 @@ function ActiveSubscriptionBanner({ profile }: ActiveSubscriptionBannerProps) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function PricingSection({ profile }: { profile: Profile | null }) {
+export function PricingSection({ profile }: { profile: ProfileProp | null }) {
   const [cycle, setCycle] = useState<BillingCycle>("1month");
   const [loading, setLoading] = useState<string | null>(null);
   const router = useRouter();

@@ -22,6 +22,8 @@ export interface Profile {
   created_at: string;
 }
 
+
+
 export interface Lead {
   id: string;
   user_id: string;
