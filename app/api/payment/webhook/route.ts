@@ -6,8 +6,8 @@ import { verifyWebhookToken } from "@/lib/xendit";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const PLAN_QUOTAS: Record<string, number> = {
-  pro: 500,
-  business: 2000,
+  pro: 1000,
+  business: 3000,
 };
 
 function getSupabase() {

@@ -5,15 +5,14 @@ import { createInvoice } from "@/lib/xendit";
 import type { BillingCycle } from "@/types/index";
 
 // ─── Pricing ──────────────────────────────────────────────────────────────────
-
 const MONTHLY_PRICES: Record<string, number> = {
   pro: 299000,
-  business: 799000,
+  business: 599000,
 };
 
 const LIFETIME_PRICES: Record<string, number> = {
   pro: 999000,
-  business: 2499000,
+  business: 1799000,
 };
 
 const DISCOUNT_12MONTH = 0.2;

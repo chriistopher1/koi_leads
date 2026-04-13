@@ -32,12 +32,12 @@ export type ProfileProp = {
 
 const MONTHLY_PRICES: Record<string, number> = {
   pro: 299000,
-  business: 799000,
+  business: 599000,
 };
 
 const LIFETIME_PRICES: Record<string, number> = {
   pro: 999000,
-  business: 2499000,
+  business: 1799000,
 };
 
 const DISCOUNT_12MONTH = 0.2;
@@ -79,7 +79,7 @@ const PLANS: PlanData[] = [
     name: "Pro",
     description: "Untuk freelancer & solopreneur",
     features: [
-      "500 leads/bulan",
+      "1000 leads/bulan",
       "Skor AI lengkap",
       "Kampanye tak terbatas",
       "Draft email & Instagram DM",
@@ -91,7 +91,7 @@ const PLANS: PlanData[] = [
     name: "Business",
     description: "Untuk tim & agensi",
     features: [
-      "2.000 leads/bulan",
+      "3.000 leads/bulan",
       "Skor AI prioritas",
       "Kampanye tak terbatas",
       "Semua fitur Pro",
