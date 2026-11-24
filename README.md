@@ -1,5 +1,7 @@
 # KoiLeads
 
+VIDEO - DEMO  : https://youtu.be/Ux5KXXnidEU
+
 Open-source SaaS for finding and managing business leads from Google Maps.
 
 Scrape businesses by keyword + location, score them with AI, organize them as **qualified** / **disqualified**, then generate draft emails and Instagram DMs from lead data.
